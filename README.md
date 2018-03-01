@@ -5,7 +5,9 @@
 于是打算做一些翻译工作，自己学习的同时也能帮到一些懒得看英文的朋友。
 另外，该课程的阅读资料中有许多练习题，但是没有标准答案，所给出的答案均为译者所写，有错误的地方还请指出。
 ```
-By: [李秋豪](http://www.cnblogs.com/liqiuhao/) [王一航](https://github.com/wangyihang)
+#### 译者
+[李秋豪](http://www.cnblogs.com/liqiuhao/) 
+[王一航](https://github.com/wangyihang)
 
 #### 目录
 - [x] [静态检查](src/Chapter-01/README.md)
