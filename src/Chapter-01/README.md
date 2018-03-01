@@ -1,13 +1,12 @@
+# Reading 1: 静态检查
 
 译者：[李秋豪](http://www.cnblogs.com/liqiuhao/) [王一航](https://github.com/wangyihang)
 
 审校：[李秋豪](http://www.cnblogs.com/liqiuhao/)
 
+```
 V1.0 Thu Mar  1 00:49:04 CST 2018
-
-<br />
-
-# Reading 1: 静态检查
+```
 
 #### 今天课程的目标：
 
