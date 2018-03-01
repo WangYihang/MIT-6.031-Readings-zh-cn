@@ -4,11 +4,13 @@
     "language": "zh",
     "plugins": [
         "github",
-        "prism",
-        "-highlight",
-        "baidu",
-        "splitter",
         "sitemap",
         "todo"
     ]
+
+    "pluginsConfig": {
+        "github": {
+                "url": "https://github.com/WangYihang/MIT-6.031-Readings-zh-cn"
+            }
+    }
 }
