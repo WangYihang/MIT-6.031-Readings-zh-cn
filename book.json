@@ -1,3 +1,16 @@
 {
-    "plugins": ["todo"]
+    "title": "麻省理工大学-软件构造(6.031)-课程阅读",
+    "description": "",
+    "language": "zh",
+    "plugins": [
+        "disqus",
+        "github",
+        "editlink",
+        "prism",
+        "-highlight",
+        "baidu",
+        "splitter",
+        "sitemap",
+        "todo"
+    ],
 }
