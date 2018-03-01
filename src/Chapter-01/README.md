@@ -121,7 +121,7 @@ Java是一种**静态类型**的语言。所有变量的类型在编译的时候
 
 译者注：这里注意不要和强类型和弱类型弄混了，知乎上有一个问答可以参考一下：[弱类型、强类型、动态类型、静态类型语言的区别是什么？](https://www.zhihu.com/question/19918532)
 
-![b0aeb7ffd1667b9162e5329154d43777_hd](/home/frank/Pictures/b0aeb7ffd1667b9162e5329154d43777_hd.jpg)
+![image.jpg](img/image.jpg)
 
 （图片来自知乎）
 
