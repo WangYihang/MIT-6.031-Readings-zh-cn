@@ -3,9 +3,7 @@
     "description": "",
     "language": "zh",
     "plugins": [
-        "disqus",
         "github",
-        "editlink",
         "prism",
         "-highlight",
         "baidu",
