@@ -6,7 +6,7 @@
         "github",
         "sitemap",
         "todo"
-    ]
+    ],
 
     "pluginsConfig": {
         "github": {
