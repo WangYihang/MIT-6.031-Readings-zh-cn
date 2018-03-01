@@ -4,7 +4,6 @@
     "language": "zh",
     "plugins": [
         "github",
-        "sitemap",
         "todo"
     ],
 
