@@ -11,4 +11,4 @@
 
 
 #### 协议
-**本文内容来自 [MIT_6.031_sp18: Software Construction](http://web.mit.edu/6.031/www/sp18/) 课程的 Readings 部分，采用 [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) 协议。**
+本文内容来自 [MIT_6.031_sp18: Software Construction](http://web.mit.edu/6.031/www/sp18/) 课程的 Readings 部分，采用 [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) 协议。
