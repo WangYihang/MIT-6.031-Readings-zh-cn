@@ -6,7 +6,7 @@
 另外，该课程的阅读资料中有许多练习题，但是没有标准答案，所给出的答案均为译者所写，有错误的地方还请指出。
 ```
 #### 译者
-[李秋豪](http://www.cnblogs.com/liqiuhao/) 
+[李秋豪](http://www.cnblogs.com/liqiuhao/)  
 [王一航](https://github.com/wangyihang)
 
 #### 目录
