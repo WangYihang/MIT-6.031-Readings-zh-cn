@@ -158,13 +158,13 @@ celsius = (fahrenheit - 32) * 5/9
 
 ### 原始值
 
-![primitives](/home/frank/Pictures/primitives.png)
+![primitives](img/primitives.png)
 
 原始值都是以常量来表达的。上面箭头的来源可以是一个变量或者一个对象的内部区域（field）。
 
 ### 对象值
 
-![objects](/home/frank/Pictures/objects.png)
+![objects](img/objects.png)
 
 一个对象用一个圆圈表示。对象内部会有很多区域（field），这些区域又指向它们对应的值。同时这些区域也是有它们的类型的，例如`int x` 。
 
@@ -177,7 +177,7 @@ celsius = (fahrenheit - 32) * 5/9
 
 #### 重新赋值和不可改变的（immutable）值
 
-![reassignment](/home/frank/Pictures/reassignment.png)
+![reassignment](img/reassignment.png)
 
 例如，如果我们有一个 [`String`](http://docs.oracle.com/javase/8/docs/api/?java/lang/String.html) 变量 `s`, 我们可以将它从 `"a"` 赋值为 `"ab"`.
 
@@ -192,7 +192,7 @@ s = s + "b";
 
 #### 可更改的（mutable）值
 
-![mutation](/home/frank/Pictures/mutation.png)
+![mutation](img/mutation.png)
 
 与此相对应的， [`StringBuilder`](http://docs.oracle.com/javase/8/docs/api/?java/lang/StringBuilder.html) (Java的一个内置类) 是一个可更改的字符串对象，它内置了许多**改变其内容**的方法：
 
@@ -211,7 +211,7 @@ Java也提供了不可更改的引用：`final`声明，变量一旦被赋值就
 final int n = 5;
 ```
 
-![final-reference](/home/frank/Pictures/final-reference.png)
+![final-reference](img/final-reference.png)
 
 如果Java编译器发现`final`声明的变量在运行中被赋值多次，它就会报错。所以`final`就是为不可更改的引用提供了静态检查。
 
@@ -241,7 +241,7 @@ final int n = 5;
 
 在快照图中，我们用数字索引表示列表中的各个区域（filed），例如一个全是String对象的列表：
 
-![Selection_190](/home/frank/Pictures/Selection_190.png)
+![Selection_190](img/Selection_190.png)
 
 
 
@@ -258,7 +258,7 @@ final int n = 5;
 
 在快照图中，我们将`Map`表示为包含key/value对的对象。例如一个Map\<String, Turtle\> ：
 
-![Selection_191](/home/frank/Pictures/Selection_191.png)
+![Selection_191](img/Selection_191.png)
 
 **集合是一种含有零个或多个不重复对象的聚合类型** 。和映射中的key相同，Python中的集合的元素也要求是[可哈希的hashable](https://docs.python.org/3/glossary.html#term-hashable) ，Java也是类似。
 
@@ -272,7 +272,7 @@ final int n = 5;
 
 在快照图中，我们不用数字索引表示集合的元素（**即元素没有顺序的概念**），例如一个含有整数的集合：
 
-![Selection_192](/home/frank/Pictures/Selection_192.png)
+![Selection_192](img/Selection_192.png)
 
 <br />
 
@@ -546,7 +546,7 @@ API是 应用编程接口（*application programming interface* ）的简称。�
 
 让我们更深入地看看 [`BufferedReader`](http://docs.oracle.com/javase/8/docs/api/?java/io/BufferedReader.html)的文档。文档中有很多我们还没讨论过的相关Java特性！保持头脑清醒并且将注意力集中在下图展示的信息中。
 
-![bufferedreader-1](/home/frank/Pictures/bufferedreader-1.png)
+![bufferedreader-1](img/bufferedreader-1.png)
 
 在这一页的顶部是`BufferedReader`的*继承关系*和一系列已经实现的接口。一个`BufferedReader`对象可以调用这些被列出的类型中定义的所有可用的方法（加上它自己定义的方法）。
 
@@ -554,11 +554,11 @@ API是 应用编程接口（*application programming interface* ）的简称。�
 
 再往下是**对这个类的描述**。有时候这些描述会有一些模棱两可，但是如果你要了解一个类，这里就是你的**第一选择**。
 
-![bufferedreader-2](/home/frank/Pictures/bufferedreader-2.png)
+![bufferedreader-2](img/bufferedreader-2.png)
 
 如果你想创建一个`BufferedReader`，那么**constructor summary**版块就是你要看的资料。构造函数并不是Java中唯一获取一个新对象的方法，但它却是最为普遍使用的。
 
-![bufferedreader-3](/home/frank/Pictures/bufferedreader-3.png)
+![bufferedreader-3](img/bufferedreader-3.png)
 
 接下来是`BufferedReader` 对象中**所有我们可以调用的方法的列表**。
 
