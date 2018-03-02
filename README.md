@@ -8,11 +8,12 @@ By: 李秋豪
 ```
 #### 译者
 [李秋豪](http://www.cnblogs.com/liqiuhao/)  
+[江家伟](https://github.com/vccxx)
 [王一航](https://github.com/wangyihang)
 
 #### 目录
 - [x] [静态检查](src/Chapter-01/README.md)
-- [ ] [Java 基础]()
+- [x] [Java 基础](src/Chapter-02/README.md)
 - [ ] [测试]()
 - [ ] [代码复查]()
 
