@@ -1,26 +1,14 @@
-**本文内容来自[MIT_6.031_sp18: Software Construction](http://web.mit.edu/6.031/www/sp18/)课程的Readings部分，采用[CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)协议。**
+# Reading 2: Java 基础
 
-由于我们学校（哈工大）大二软件构造课程的大部分素材取自此，也是推荐的阅读材料之一，于是打算做一些翻译工作，自己学习的同时也能帮到一些懒得看英文的朋友。另外，该课程的阅读资料中有许多练习题，但是没有标准答案，所给出的答案均为译者所写，有错误的地方还请指出。
-
-<br />
-
-------
-
-<br />
+译者注：本章主要讲解了Java的一些基础知识，以及Python和Java的一些区别与联系，熟悉的读者可以略过本章。
 
 译者：[李秋豪](http://www.cnblogs.com/liqiuhao/) [江家伟](http://jiangjiawei.pw/blog/)
 
 审校：[李秋豪](http://www.cnblogs.com/liqiuhao/)
 
+```
 V1.0 Fri Mar  2 16:48:58 CST 2018
-
-<br />
-
-译者注：本章主要讲解了Java的一些基础知识，以及Python和Java的一些区别与联系，熟悉的读者可以略过本章。
-
-<br />
-
-# Reading 2: Java 基础
+```
 
 #### 本节目标
 
