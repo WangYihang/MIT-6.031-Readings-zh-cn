@@ -14,7 +14,7 @@ By: 李秋豪
 #### 目录
 - [x] [静态检查](src/Chapter-01/README.md)
 - [x] [Java 基础](src/Chapter-02/README.md)
-- [ ] [测试]()
+- [x] [测试](src/Chapter-03/README.md)
 - [ ] [代码复查]()
 
 
