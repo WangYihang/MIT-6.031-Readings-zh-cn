@@ -19,7 +19,8 @@ By: 李秋豪
 - [x] [版本控制](src/Chapter-05/README.md)
 - [x] [规格说明](src/Chapter-06/README.md)
 - [x] [设计规格说明](src/Chapter-07/README.md)
-- [ ] [易变性与不变性]()
+- [x] [可变性与不变性](src/Chapter-08/README.md)
+- [ ] [避免Debugging]()
 
 
 #### 协议
