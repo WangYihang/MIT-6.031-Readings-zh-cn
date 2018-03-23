@@ -28,7 +28,7 @@ V1.0 Fri Mar 23 17:20:24 CST 2018
 
 ## 创建和使用对象
 
-*译者注：麻神理工是先教的Python，Java并没有作为课程。所以这里提供了一组从Python到Java过渡资料。Java基础好的朋友这节可以跳过。*
+*译者注：麻省理工是先教的Python，Java并没有作为课程。所以这里提供了一组从Python到Java过渡资料。Java基础好的朋友这节可以跳过。*
 
 > From [Ken Lambert’s tutorial *From Python to Java*](http://home.wlu.edu/~lambertk/pythontojava/), read the first 8 pages under *Defining Classes*:
 >
