@@ -21,7 +21,8 @@ By: 李秋豪
 - [x] [设计规格说明](src/Chapter-07/README.md)
 - [x] [可变性与不变性](src/Chapter-08/README.md)
 - [x] [避免Debugging](src/Chapter-09/README.md)
-- [ ] [抽象数据类型]()
+- [x] [抽象数据类型](src/Chapter-10/README.md)
+- [ ] []()
 
 
 #### 协议
