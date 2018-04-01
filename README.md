@@ -22,7 +22,7 @@ By: 李秋豪
 - [x] [可变性与不变性](src/Chapter-08/README.md)
 - [x] [避免Debugging](src/Chapter-09/README.md)
 - [x] [抽象数据类型](src/Chapter-10/README.md)
-- [ ] []()
+- [x] [抽象函数与表示不变量](src/Chapter-11/README.md)
 
 
 #### 协议
