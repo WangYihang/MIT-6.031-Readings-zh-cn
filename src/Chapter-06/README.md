@@ -395,7 +395,7 @@ points.length   // throws NullPointerException
 
 要注意是，`null`并不等于“空”，例如一个空的字符串`""`或者一个空的数组。对于一个空的字符串或者数组，你可以调用它们的方法或者访问其中的数据，只不过它们对应的元素长度是0罢了（调用 `length()` ）。而对于一个指向null的String类型变量——它什么都不是：调用 `length()` 会产生一个`NullPointer­Exception`.
 
-另外要注意一点，非原始类型的聚合类型例如`List`可能不只想`null`但是它的元素可能指向`null` ：
+另外要注意一点，非原始类型的聚合类型例如`List`可能不指向`null`但是它的元素可能指向`null` ：
 
 ![Selection_208](./img/Selection_208.png)
 
