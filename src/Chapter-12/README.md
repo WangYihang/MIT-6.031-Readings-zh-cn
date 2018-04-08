@@ -1,8 +1,8 @@
 **本文内容来自[MIT_6.031_sp18: Software Construction](http://web.mit.edu/6.031/www/sp18/)课程的Readings部分，采用[CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)协议。**
 
-由于我们学校（哈工大）大二软件构造课程的大部分素材取自此，也是推荐的阅读材料之一，于是打算做一些翻译工作，自己学习的同时也能帮到一些懒得看英文的朋友。另外，该课程的阅读资料中有许多练习题，但是没有标准答案，所给出的“正确答案”均为译者所写，有错误的地方还请指出。
+由于我们学校（哈工大）大二软件构造课程的大部分素材取自此，也是推荐的阅读材料之一，于是打算做一些翻译工作，自己学习的同时也能帮到一些懒得看英文的朋友。另外，该课程的阅读资料中有的练习题没有标准答案，所给出的“正确答案”为译者所写，有错误的地方还请指出。
 
-*（更新：从第10章开始，只提供正确答案，不再翻译错误答案）*
+*（更新：从第10章开始只翻译正确答案）*
 
 <br />
 
@@ -12,871 +12,932 @@
 
 译者：[李秋豪](http://www.cnblogs.com/liqiuhao/) [江家伟](http://jiangjiawei.pw/blog/)
 
-审校：[李秋豪](http://www.cnblogs.com/liqiuhao/)
+审校：
 
-V1.0 Thu Mar 29 00:41:23 CST 2018
+V1.0 Sun Apr  8 13:29:19 CST 2018
 
 <br />
 
 #### 本次课程的目标
 
-- 理解“抽象数据类型(ADT)”
-- 理解“表示独立”
+本次课程的主题是接口：将抽象数据类型中的实现与抽象接口分离开，并在Java中运用`interface`强制这种分离。
 
-在这篇阅读中，我们将会讲解一个重要的概念——抽象数据类型，它会帮助我们将数据结构的使用和数据结构的具体实现分开。
-
-抽象数据类型解决了一个很危险的问题：使用者可能对类型的内部表示做假设。我们在后面会探讨为什么这种假设是危险的，以及如何避免它。我们也会讨论操作符的分类和如何设计好的抽象数据类型。
+在这次课程后，你应该能够定义ADT的接口，并能够写出对应的实现类。
 
 <br />
 
-### Java中的访问控制
+*译者注：本次阅读很多说法基于Javase8以前的版本，在javase8以后已经可以在接口中定义静态方法/静态常量/default方法。参考：[Java 8 Interface Changes – static method, default method](https://www.journaldev.com/2752/java-8-interface-changes-static-method-default-method)*
 
-> 阅读: [**Controlling Access to Members of a Class**](http://docs.oracle.com/javase/tutorial/java/javaOO/accesscontrol.html)
+<br />
+
+## 接口
+
+Java中的`interface`（接口）是一种表示抽象数据类型的好方法。接口中是一连串的方法标识，但是没有方法体（定义）。如果想要写一个类来实现接口，我们必须给类加上`implements`关键字，并且在类内部提供接口中方法的定义。所以接口+实现类也是Java中定义抽象数据类型的一种方法。
+
+这种做法的一个优点就是接口只为使用者提供“契约”（contract），而使用者只需要读懂这个接口即可使用该ADT，他也不需要依赖ADT特定的实现/表示，因为实例化的变量不能放在接口中（具体实现被分离在另外的类中）。
+
+接口的另一个优点就是它允许了一种抽象类型能够有多种实现/表示，即一个接口可以有多个实现类（译者注：一个类也可以同时实现多个接口）。而当一个类型只用一个类来实现时，我们很难改变它的内部表示。例如之前阅读中的 [`MyString` ](http://www.cnblogs.com/liqiuhao/p/8667447.html)这个例子，我们对 `MyString` 实现了两种表示方法，但是这两个类就不能同时存在于一个程序中。
+
+Java的静态检查会发现没有实现接口的错误，例如，如果程序员忘记实现接口中的某一个方法或者返回了一个错误的类型，编译器就会在编译期报错。不幸的是，编译器不会去检查我们的方法是否遵循了接口中的文档注释。
+
+> 关于定义接口的细节，请参考 [Java Tutorials section on interfaces](http://docs.oracle.com/javase/tutorial/java/IandI/createinterface.html).
 
 #### 阅读小练习
 
-阅读以下代码并回答问题：
+**Java interfaces**
+
+思考下面这个Java接口和实现类，它们尝试实现一个不可变的集合类型：
 
 ```java
-    class Wallet {
-        private int amount;
-
-        public void loanTo(Wallet that) {
-            // put all of this wallet's money into that wallet
-/*A*/       that.amount += this.amount;
-/*B*/       amount = 0;
-        }
-
-        public static void main(String[] args) {
-/*C*/       Wallet w = new Wallet();
-/*D*/       w.amount = 100;
-/*E*/       w.loanTo(w);
-        }
+    /** Represents an immutable set of elements of type E. */
+    public interface Set<E> {
+        /** make an empty set */
+A       public Set();
+        /** @return true if this set contains e as a member */
+        public boolean contains(E e);
+        /** @return a set which is the union of this and that */
+B       public ArraySet<E> union(Set<E> that);    
     }
 
-    class Person {
-        private Wallet w;
-
-        public int getNetWorth() {
-/*F*/       return w.amount;
-        }
-
-        public boolean isBroke() {
-/*G*/       return Wallet.amount == 0;
-        }
+    /** Implementation of Set<E>. */
+    public class ArraySet<E> implements Set<E> {
+        /** make an empty set */
+        public ArraySet() { ... }
+        /** @return a set which is the union of this and that */
+        public ArraySet<E> union(Set<E> that) { ... }
+        /** add e to this set */
+        public void add(E e) { ... }
     }
 ```
 
-![election_25](./img/Selection_258.png)
+下面关于 `Set<E>` 和 `ArraySet<E>`的说法哪一个是正确的？
 
-假设程序在运行 `/*A*/` 语句后立即停止，上图列出了此时的内部状态，请问各个数字所标出的方框内应该填上什么？
+`A` 标号处有问题，因为接口不能有构造方法。--> True
 
-1 -> w
+The line labeled `B` is a problem because `Set` mentions `ArraySet`, but `ArraySet` also mentions `Set`, which is circular. --> False
 
-2 -> that
+`B` 标号处有问题，因为它没有实现“表示独立”。--> True
 
-3 -> loanTo
+`ArraySet` 并没有正确实现 `Set`，因为它缺失了 `contains()` 方法。--> True
 
-4 -> 200
+`ArraySet` doesn’t correctly implement `Set` because it includes a method that `Set` doesn’t have. --> False
 
-
-
-**Access control A**
-
-关于语句 `/*A*/`，以下哪一个说法是正确的？
-
-```java
-that.amount += this.amount;
-```
-
-- [x] 在Java中允许对`this.amount`的索引
-
-- [x] 在Java中允许对 `that.amount` 的索引
-
-
-
-
-**Access control B**
-
-关于语句 `/*B*/`，以下哪一个说法是正确的？
-
-```java
-amount = 0;
-```
-
-- [x] 在Java中允许对 `amount` 的索引
-
-
-
-**Access control C**
-
-关于语句 `/*C*/`，以下哪一个说法是正确的？
-
-```java
-Wallet w = new Wallet();
-```
-
-- [x] 在Java中允许对 `Wallet()` 构造函数的调用
-
-
-
-**Access control D**
-
-关于语句 `/*D*/`，以下哪一个说法是正确的？
-
-```java
-w.amount = 100;
-```
-
-- [x] 在Java中允许对 `w.amount` 的访问
-
-
-
-**Access control E**
-
-关于语句 `/*E*/` ，以下哪一个说法是正确的？
-
-```java
-w.loanTo(w);
-```
-
-- [x] 在Java中允许对 `loanTo()` 的调用
-- [x] 在这句代码执行之后，`w`指向的`Wallet`对象的金额将会是0
-
-
-
-**Access control F**
-
-关于语句 `/*F*/`，以下哪一个说法是正确的？ 
-
-```java
-return w.amount;
-```
-
-- [x] 这里关于 `w.amount` 的索引不会被允许，因为 `amount` 是在另一个类中的私有区域
-
-- [x] 这个非法访问会被静态捕捉
-
-
-
-
-**Access control G**
-
-关于语句 `/*G*/`，以下哪一个说法是正确的？ 
-
-```java
-return Wallet.amount == 0;
-```
-
-- [x] 这里关于 `Wallet.amount` 的索引不会被允许，因为 `amount` 是一个私有地址
-- [x] 这里关于 `Wallet.amount` 的索引不会被允许，因为 `amount` 是一个实例变量
-- [x] 这个非法访问会被静态捕捉
-
+`ArraySet` 并没有正确实现 `Set`，因为 `ArraySet` 是可变的，但是  `Set` 是不可变的。--> True
 
 <br />
 
-## 什么是抽象
+## 子类型
 
-抽象数据类型是软件工程中一个普遍原则的实例，从它衍生出很多意思相近的名词。这里列出了几个能够表达其中思想的词：
+回忆一下，我们之前说过类型就是值的集合。Java中的 [`List`](http://docs.oracle.com/javase/8/docs/api/?java/util/List.html) 类型是通过接口定义的，如果我们想一下`List`所有的可能值，它们都不是`List`对象：我们不能通过接口实例化对象——这些值都是 `ArrayList` 对象, 或 `LinkedList` 对象，或者是其他`List`实现类的对象。我们说，一个子类型就是父类型的子集，正如 `ArrayList` 和 `LinkedList`是`List`的子类型一样。
 
-- **抽象：** 忽略底层的细节而在高层思考
-- **模块化：**将系统分为一个模块，每个模块可以单独的进行设计、实现、测试、推倒，并且在剩下的开发中进行复用。
-- **封装：**在模块的外部建立起一道“围墙”，使它只对自己内部的行为负责，并且系统别处的bug不会影响到它内部的正确性。
-- **信息隐藏：**将模块的实现细节隐藏，使未来更改模块内部时不必改变外部代码。
-- **功能分离：**一个模块仅仅负责一个特性/功能，而不是将一个特性运用在很多模块上或一个模块拥有很多特性。
+“B是A的子类型”就意味着“每一个B都是A”，换句话说，“每一个B都满足了A的规格说明”。
 
-作为一个软件工程师，你应该知道这些名词，因为你会在以后的工作中经常遇到它们。这些思想的本质目的都是为了实现我们这门课的三个目标：远离bug、易于理解、可改动。
+这也意味着B的规格说明至少强于A的规格说明。当我们声明一个接口的实现类时，编译器会尝试做这样的检查：它会检查类是否全部实现了接口中规定的函数，并且检查这些函数的标识是否对的上。
 
-事实上，我们在之前的课程中已经碰到过这些思想，特别是在设计方法和规格说明的时候：
-
-- 抽象：规格说明使得使用者只需要弄懂规格说明并遵守前置条件，而不是让他们去弄懂底层的代码实现
-- 模块化：单元测试和规格说明都帮助了将方法模块化
-- 封装：方法中的局部变量都是被封装的，因为他们仅仅可以在方法内部使用。与此相对的是全局变量和指向可变对象的别名，它们会对封装带来很大损害。
-- 信息隐藏：规格说明就是一种信息隐藏，它使得实现者可以自由的更改实现代码。
-- 功能分离：一个规格说明应该是逻辑明确的，即它不能有很多特性，而应该完成好一个功能。
-
-从今天的课程开始，我们将跳出对方法的抽象，看看对数据的抽象。但是在我们描述数据抽象时方法也会扮演很重要的角色。
-
-### 用户定义类型
-
-在早期的编程语言中，用户只能自己定义方法，而所有的类型都是规定好的（例如整型、布尔型、字符串等等）。而现代编程语言允许用户自己定义类型对数据进行抽象，这是软件开发中的一个巨大进步。
-
-对数据进行抽象的核心思想就是类型是通过其对应的操作来区分的：一个整型就是你能对它进行加法和乘法的东西；一个布尔型就是你能对它进行取反的东西；一个字符串就是你能对它进行链接或者取子字符串的东西，等等。在一定意义上，用户在以前的编程语言上似乎已经能够定义自己的类型了，例如定义一个名叫Date的结构体，里面用int表示天数和年份。但是真正使得抽象类型变得新颖不同的是对操作的强调：用户不用管这个类型里面的数据是怎么保存表示的，就好像是程序员不用管编译器是怎么存储整数一样。起作用的只是类型对应的操作。
-
-和很多现代语言一样，在Java中内置类型和用户定义类型之间的关系很模糊。例如在 `java.lang`中的类 `Integer` 和 `Boolean` 就是内置的——Java标准中规定它们必须存在，但是它们的定义又是和用户定义类型的方式一样的。另外，Java中还保留了原始类型，它们不是类和对象，例如 `int` 和 `boolean` ，用户无法对它们进行继承。
+但是编译器不会检查我们是否通过其他形式弱化了规格说明：例如强化了某个方法输入的前置条件，或弱化了接口对于用户的保证（后置条件）。如果你在Java中定义了一个子类型——我们这里是实现接口——你必须要确保子类型的规格说明至少要比父类型强。
 
 #### 阅读小练习
 
-**Abstract Data Types**
+**Immutable shapes**
 
-思考抽象数据类型 `Bool`，它有如下操作：
+让我们为矩形定义一个接口：
 
-**true** : Bool 
-**false** : Bool
+```java
+/** An immutable rectangle. */
+public interface ImmutableRectangle {
+    /** @return the width of this rectangle */
+    public int getWidth();
+    /** @return the height of this rectangle */
+    public int getHeight();
+}
+```
 
-**and** : Bool × Bool → Bool 
-**or** : Bool × Bool → Bool 
-**not** : Bool → Bool
+而每一个正方形类型都是矩形类型：
 
-头两个操作构建了这个类型对应的两个值，后三个操作对应逻辑操作 和、或、取非。
+```java
+/** An immutable square. */
+public class ImmutableSquare {
+    private final int side;
+    /** Make a new side x side square. */
+    public ImmutableSquare(int side) { this.side = side; }
+    /** @return the width of this square */
+    public int getWidth() { return side; }
+    /** @return the height of this square */
+    public int getHeight() { return side; }
+}
+```
 
-以下哪些选项可以是 `Bool` 具体的实现方法（并且满足上面的操作符）？
+`ImmutableSquare.getWidth()` 是否满足了 `ImmutableRectangle.getWidth()`的规格说明? --> Yes
 
-- [x] 一个比特位，1代表true，0代表false
-- [x] 一个`int`值，5代表true，8代表false
-- [x] 一个对`String`对象的索引，`"false"`代表true， `"true"` 代表false
-- [x] 一个`int`值，大于1的质数代表true，其余的代表false
+`ImmutableSquare.getHeight()` 是否满足了 `ImmutableRectangle.getHeight()`的规格说明? -->Yes
 
+`ImmutableSquare` 的规格说明是否满足了（至少强于） `ImmutableRectangle` 的规格说明？ --> Yes
 
-<br />
+**Mutable shapes**
 
-## 类型和操作的分类
+```java
+/** A mutable rectangle. */
+public interface MutableRectangle {
+    // ... same methods as above ...
+    /** Set this rectangle's dimensions to width x height. */
+    public void setSize(int width, int height);
+}
+```
 
-对于类型，不管是内置的还是用户定义的，都可以被分为**可改变** 和 **不可变**两种。其中可改变类型的对象能够被改变：它们提供了改变对象内容的操作，这样的操作执行后可以改变其他对该对象操作的返回值。所以 `Date` 就是可改变的，因为你可以通过调用`setMonth`操作改变 `getMonth` 操作的返回值。但 `String` 就是不可改变的，因为它的操作符都是创建一个新的 `String` 对象而不是改变现有的这个。有时候一个类型会提供两种形式，一种是可改变的一种是不可改变的。例如 `StringBuilder`就是一种可改变的字符串类型。
+现在每一个正方形类型还是矩形类型吗？
 
-而抽象类型的操作符大致分类：
+```java
+/** A mutable square. */
+public class MutableSquare {
+    private int side;
+    // ... same constructor and methods as above ...
+    // TODO implement setSize(..)
+}
+```
 
-- **创建者creator：**创建一个该类型的新对象。一个创建者可能会接受一个对象作为参数，但是这个对象的类型不能是它创建对象对应的类型。
-- **生产者producer：**通过接受同类型的对象创建新的对象。例如， `String`类里面的 `concat` 方法就是一个生产者，它接受两个字符串然后据此产生一个新的字符串。
-- **观察者observer：**接受一个同类型的对象然后返回一个不同类型的对象/值。例如`List`的 `size` 方法，它返回一个 `int`。
-- **改造者mutator：**改变对象的内容，例如 `List`的 `add` 方法，它会在列表中添加一个元素。
+对于下面的每一个 `MutableSquare.setSize(..)` 实现，请判断它是否合理：
 
-我们可以将这种区别用映射来表示：
+```java
+/** Set this square's dimensions to width x height.
+ *  Requires width = height. */
+public void setSize(int width, int height) { ... }
+```
 
-- creator : t* → T
-- producer : T+, t* → T
-- observer : T+, t* → t
-- mutator : T+, t* → void | t | T
+--> No – stronger precondition
 
-其中T代表抽象类型本身；t代表其他的类型；`+`代表这个参数可能出现一次或多次；`*`代表这个参数可能出现零次或多次。例如， [`String.concat()`](http://docs.oracle.com/javase/8/docs/api/java/lang/String.html#concat-java.lang.String-) 这个接受两个参数的生产者：
+```java
+/** Set this square's dimensions to width x height.
+ *  @throws BadSizeException if width != height */
+public void setSize(int width, int height) throws BadSizeException { ... }
+```
 
-- concat : String × String → String
+--> Specifications are incomparable
 
-有些观察者不会接受其他类型的参数，例如：
+```java
+/** If width = height, set this square's dimensions to width x height.
+ *  Otherwise, new dimensions are unspecified. */
+public void setSize(int width, int height) { ... }
+```
 
-- [size](http://docs.oracle.com/javase/8/docs/api/java/util/List.html#size--) : List → int
+--> No – weaker postcondition
 
-而有些则会接受很多参数：
+```java
+/** Set this square's dimensions to side x side. */
+public void setSize(int side) { ... }
+```
 
-- [regionMatches](http://docs.oracle.com/javase/8/docs/api/java/lang/String.html#regionMatches-boolean-int-java.lang.String-int-int-) : String × boolean × int × String × int × int → boolean
-
-构造者通常都是用构造函数实现的，例如 [`new ArrayList()`](https://docs.oracle.com/javase/8/docs/api/java/util/ArrayList.html#ArrayList--) ，但是有的构造体是静态方法（类方法），例如 [`Arrays.asList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-)和 [`String.valueOf`](http://docs.oracle.com/javase/8/docs/api/java/lang/String.html#valueOf-boolean-) ，这样的静态方法也称为**工厂方法。**
-
-改造者通常没有返回值（`void`）。一个没有返回值的方法**一定有副作用** ，因为不然这个方法就没有任何意义了。但是不是所有的改造者都没有返回值。例如[`Set.add()`](http://docs.oracle.com/javase/8/docs/api/java/util/Set.html#add-E-) 会返回一个布尔值用来提示这个集合是否被改变了。在Java图形库接口中，[`Component.add()`](http://docs.oracle.com/javase/8/docs/api/java/awt/Container.html#add-java.awt.Component-) 会将它自己这个对象返回，因此`add()`可以被[连续链式调用](http://en.wikipedia.org/wiki/Method_chaining)。
-
-### 抽象数据类型的例子
-
-**int** 是Java中的原始整数类型，它是不可变类型，没有改造者。
-
-- creators: 字面量 `0`, `1`, `2`, …
-- producers: 算术符 `+`, `-`, `*`, `/`
-- observers: 比较符号 `==`, `!=`, `<`, `>`
-- mutators: 无
-
-**List** 是Java中的列表类型，它是可更改类型。另外，`List`也是一个接口，所以对于它的实现可以有很多类，例如 `ArrayList` 和 `LinkedList`.
-
-- creators: `ArrayList` 和 `LinkedList` 的构造函数, [`Collections.singletonList`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#singletonList-T-)
-- producers: [`Collections.unmodifiableList`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#unmodifiableList-java.util.List-)
-- observers: `size`, `get`
-- mutators: `add`, `remove`, `addAll`, [`Collections.sort`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#sort-java.util.List-)
-
-**String** 是Java中的字符串类型，它是不可变类型。
-
-- creators: `String` 构造函数, `valueOf` 静态方法（工厂方法）
-- producers: `concat`, `substring`, `toUpperCase`
-- observers: `length`, `charAt`
-- mutators: 无
-
-这个分类告诉了我们一些有用的术语，但它不是完美的。例如对于复杂的数据类型，有些操作可能既是生产者也是改造者。
-
-#### 阅读小练习
-
-**Operations**
-
-下面都是我们从Java库中选取的几个抽象数据类型的操作，试着通过阅读文档将这些操作分类。
-
-提示：注意类型本身是不是参数或者返回值，同时记住实例方法（没有`static`关键词的）有一个隐式的参数。
-
-[`Integer.valueOf()`](http://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html#valueOf-java.lang.String-)
-
-creator
-
-[`BigInteger.mod()`](http://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html#mod-java.math.BigInteger-)
-
-producer
-
-[`List.addAll()`](http://docs.oracle.com/javase/8/docs/api/java/util/List.html#addAll-java.util.Collection-)
-
-mutator
-
-[`String.toUpperCase()`](http://docs.oracle.com/javase/8/docs/api/java/lang/String.html#toUpperCase--)
-
-producer
-
-[`Set.contains()`](http://docs.oracle.com/javase/8/docs/api/java/util/Set.html#contains-java.lang.Object-)
-
-observer
-
-[`Map.keySet()`](https://docs.oracle.com/javase/8/docs/api/java/util/Map.html#keySet--)
-
-observer
-
-[`BufferedReader.readLine()`](http://docs.oracle.com/javase/8/docs/api/java/io/BufferedReader.html#readLine--)
-
-mutator
+--> Specifications are incomparable
 
 <br />
 
-## 抽象类型是通过它的操作定义的
+## 例子: `MyString`
 
-这一节的重要思想就是**抽象类型是通过它的操作定义的.**
-
-对于类型T来说，它的操作集合和规格说明完全定义和构造了它的特性。例如，当我们谈到`List`类型时，我们并没有特指一个数组或者链接链表，而是一系列模糊的值——哪些对象可以是`List`类型——满足该类型的规格说明和操作规定，例如 `get()`, `size()`, 等等。
-
-![election_25](./img/Selection_259.png)
-
-上一段说到的“模糊的值”是指我们不能去检查数据具体是在类型中怎么存储的，而是要通过特定的操作去处理。例如上图中画出的，通过规格说明这道“防火墙”，我们将类型中具体的实现和这些实现共享的私有数据封装起来，而用户只能看到和使用接口上的操作。
-
-<br />
-
-## 设计抽象类型
-
-设计一个抽象类型包括选择合适的操作以及它们对应的行为，这里列出了几个重要的规则。
-
-设计**少量，简单，可以组合实现强大功能**的操作而非设计很多复杂的操作。
-
-每个操作都应该有一个被明确定义的目的，并且应该设计为对不同的数据结构有**一致的**行为，而不是针对某些特殊情况。例如，或许我们不应该为`List`类型添加一个`sum`操作。因为这虽然可能对想要操作一个整数列表的用户有帮助，但是如果用户想要操作一个字符串列表呢？或者一个嵌套的列表? 所有这些特殊情况都将会使得`sum`成为一个难以理解和使用的操作。
-
-操作集合应该**充分地**考虑到用户的需求，也就是说，用户可以用这个操作集合做他们可能想做的计算。一个较好测试方法是检查抽象类型的每个属性是否都能被操作集提取出来。例如，如果没有`get`操作，我们就不能提取列表中的元素。抽象类型的基本信息的提取也不应该特别困难。例如，`size`方法对于`List`并不是必须的，因为我们可以用`get`增序遍历整个列表，直到`get`执行失败，但是这既不高效，也不方便。
-
-抽象类型可以是通用的：例如，列表、集合，或者图。或者它可以是适用于特定领域的：一个街道的地图，一个员工数据库，一个电话簿等等。但是**一个抽象类型不能兼有上述二者的特性**。被设计用来代表一个纸牌序列的`Deck`类型不应该有一个通用的`add`方法来向类型实例中添加任意对象，比如整型和字符串类型。反过来说，对于像`dealCards`这样的只对特定领域(译者注：纸牌游戏)有效的方法，把它加入`List`这样的通用类型中也是没有意义的。
-
-<br />
-
-## 表示独立
-
-特别地，一个好的抽象数据类型应该是**表示独立**的。这意味着它的使用和它的内部表示（实际的数据结构和实现）无关，所以内部表示的改变将对外部的代码没有影响。例如，`List`就是表示独立的——它的使用与它是用数组还是连接链表实现无关。
-
-如果一个操作完全在规格说明中定义了前置条件和后置条件，使用者就知道他应该依赖什么，而你也可以安全的对内部实现进行更改（遵循规格说明）。
-
-### 例子: 字符串的不同表示
-
-让我们先来看看一个表示独立的例子，然后想想它为什么很有用。下面的 `MyString`抽象类型是我们举出的例子，虽然它远远没有Java中的`String`操作多，规格说明也有些不同，但是还是有解释力的。下面是规格说明：
+现在我们再来看一看 [`MyString` ](http://www.cnblogs.com/liqiuhao/p/8667447.html)这个例子，这次我们使用接口来定义这个ADT，以便创建多种实现类：
 
 ```java
 /** MyString represents an immutable sequence of characters. */
-public class MyString { 
+public interface MyString { 
 
-    //////////////////// Example of a creator operation ///////////////
-    /** @param b a boolean value
-     *  @return string representation of b, either "true" or "false" */
-    public static MyString valueOf(boolean b) { ... }
+    // We'll skip this creator operation for now
+    // /** @param b a boolean value
+    //  *  @return string representation of b, either "true" or "false" */
+    // public static MyString valueOf(boolean b) { ... }
 
-    //////////////////// Examples of observer operations ///////////////
     /** @return number of characters in this string */
-    public int length() { ... }
+    public int length();
 
     /** @param i character position (requires 0 <= i < string length)
      *  @return character at position i */
-    public char charAt(int i) { ... }
+    public char charAt(int i);
 
-    //////////////////// Example of a producer operation ///////////////    
     /** Get the substring between start (inclusive) and end (exclusive).
      *  @param start starting index
      *  @param end ending index.  Requires 0 <= start <= end <= string length.
      *  @return string consisting of charAt(start)...charAt(end-1) */
-    public MyString substring(int start, int end) { ... }
+    public MyString substring(int start, int end);
 }
 ```
 
-使用者只需要/只能知道这个类型的公共方法和规格说明。
+现在我们先跳过 `valueOf` 这个方法，用我们在[“抽象数据类型”](http://www.cnblogs.com/liqiuhao/p/8667447.html)中学习到的知识去实现这个接口。
 
-现在让我们看一个`MyString`简单的表示方法，仅仅使用一个字符数组，而且它的大小刚好是字符串的长度，没有多余的空间：
+下面是我们的第一种实现类：
 
 ```java
-private char[] a;
+public class SimpleMyString implements MyString {
+
+    private char[] a;
+
+    /** Create a string representation of b, either "true" or "false".
+     *  @param b a boolean value */
+    public SimpleMyString(boolean b) {
+        a = b ? new char[] { 't', 'r', 'u', 'e' } 
+              : new char[] { 'f', 'a', 'l', 's', 'e' };
+    }
+
+    // private constructor, used internally by producer operations
+    private SimpleMyString(char[] a) {
+        this.a = a;
+    }
+
+    @Override public int length() { return a.length; }
+
+    @Override public char charAt(int i) { return a[i]; }
+
+    @Override public MyString substring(int start, int end) {
+        char[] subArray = new char[end - start];
+        System.arraycopy(this.a, start, subArray, 0, end - start);
+        return new SimpleMyString(subArray);
+    }
+}
 ```
 
-如果使用这种表示方法，我们对操作的实现可能就是这样的：
+而下面是我们优化过的实现类：
 
 ```java
-public static MyString valueOf(boolean b) {
-    MyString s = new MyString();
-    s.a = b ? new char[] { 't', 'r', 'u', 'e' } 
-            : new char[] { 'f', 'a', 'l', 's', 'e' };
-    return s;
-}
+public class FastMyString implements MyString {
 
-public int length() {
-    return a.length;
-}
+    private char[] a;
+    private int start;
+    private int end;
 
-public char charAt(int i) {
-    return a[i];
-}
+    /** Create a string representation of b, either "true" or "false".
+     *  @param b a boolean value */
+    public FastMyString(boolean b) {
+        a = b ? new char[] { 't', 'r', 'u', 'e' } 
+              : new char[] { 'f', 'a', 'l', 's', 'e' };
+        start = 0;
+        end = a.length;
+    }
 
-public MyString substring(int start, int end) {
-    MyString that = new MyString();
-    that.a = new char[end - start];
-    System.arraycopy(this.a, start, that.a, 0, end - start);
-    return that;
+    // private constructor, used internally by producer operations.
+    private FastMyString(char[] a, int start, int end) {
+        this.a = a;
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override public int length() { return end - start; }
+
+    @Override public char charAt(int i) { return a[start + i]; }
+
+    @Override public MyString substring(int start, int end) {
+        return new FastMyString(this.a, this.start + start, this.end + end);
+    }
 }
 ```
 
-这里想一个问题：为什么 `charAt` 和 `substring` 不去检查参量在合法的范围内？你认为这种类型的对象对于非法的输入会有什么反应？
+- 与我们[之前的实现相比](http://web.mit.edu/6.031/www/sp18/classes/10-abstract-data-types/#example_different_representations_for_strings)，注意到之前的代码中`valueOf`是静态方法，但是在这里就不是了。而这里也使用了指向实例内部表示的`this`。
+- 同时要注意到 [`@Override`](https://docs.oracle.com/javase/tutorial/java/annotations/predefined.html)的使用，这个词是通知编译器这个方法必须和其父类中的某个方法的标识完全一样（覆盖）。但是由于实现接口时编译器会自动检查我们的实现方法是否遵循了接口中的方法标识，这里的 `@Override` 更多是一种文档注释，它告诉读者这里的方法是为了实现某个接口，读者应该去阅读这个接口中的规格说明。同时，如果你没有对实现类（子类型）的规格说明进行强化，这里就不需要再写一遍规格说明了。（DRY原则）
+- 另外注意到我们添加了一个私有的构造方法，它是为 `substring(..)` 这样的生产者服务的。它的参数是表示的域。我们之前并不需要写出构造方法，因为Java会在没有构造方法时自动构建一个空的构造方法，但是这里我们添加了一个接收 `boolean b` 的构造方法，所以就必须显式声明另一个为生产者服务的构造方法了。
 
-下面的快照图展示了在使用者进行`substring`操作后的数据状态：
+那么使用者会如何用这个ADT呢？下面是一个例子：
 
-![election_26](./img/Selection_260.png)
+```java
+MyString s = new FastMyString(true);
+System.out.println("The first character is: " + s.charAt(0));
+```
+
+这似乎和我们用Java的聚合类型时的代码很像，例如：
+
+```java
+List<String> s = new ArrayList<String>();
+...
+```
+
+不幸的是，这种模式已经**破坏了我们辛苦构建的抽象层次** 。使用者必须知道具体实现类的名字。因为Java接口中不能包含构造方法，它们必须通过调用实现类的构造方法来获取接口类型的对象，而接口中是不可能含有构造方法的规格说明的。另外，由于接口中没有对构造方法进行说明，所以我们甚至无法保证不同的实现类会提供同样的构造方法。
+
+幸运的是，Java8以后允许为接口定义静态方法，所以我们可以在接口`MyString`中通过静态的[工厂方法](http://web.mit.edu/6.031/www/sp18/classes/10-abstract-data-types/#factory_method)来实现创建者`valueOf`：
+
+```java
+public interface MyString { 
+
+    /** @param b a boolean value
+     *  @return string representation of b, either "true" or "false" */
+    public static MyString valueOf(boolean b) {
+        return new FastMyString(true);
+    }
+
+    // ...
+```
+
+现在使用者可以在不破坏抽象层次的前提下使用ADT了：
 
 ```java
 MyString s = MyString.valueOf(true);
-MyString t = s.substring(1,3);
+System.out.println("The first character is: " + s.charAt(0));
 ```
 
-这种实现有一个性能上的问题，因为这个数据类型是不可变的，那么 `substring` 实际上没有必要真正去复制子字符串到一个新的数组中。它可以仅仅指向原来的 `MyString` 字符数组，并且记录当前的起始位置和终止位置。
-
-为了实现这种优化，我们可以将内部表示改为：
-
-```java
-private char[] a;
-private int start;
-private int end;
-```
-
-通过这种新的表示方法，我们可以这样实现操作：
-
-```java
-public static MyString valueOf(boolean b) {
-    MyString s = new MyString();
-    s.a = b ? new char[] { 't', 'r', 'u', 'e' } 
-            : new char[] { 'f', 'a', 'l', 's', 'e' };
-    s.start = 0;
-    s.end = s.a.length;
-    return s;
-}
-
-public int length() {
-    return end - start;
-}
-
-public char charAt(int i) {
-  return a[start + i];
-}
-
-public MyString substring(int start, int end) {
-    MyString that = new MyString();
-    that.a = this.a;
-    that.start = this.start + start;
-    that.end = this.start + end;
-    return that;
-}
-```
-
-现在进行`substring`操作后的数据状态：
-
-![election_26](./img/Selection_261.png)
-
-```java
-MyString s = MyString.valueOf(true);
-MyString t = s.substring(1,3);
-```
-
-因为 `MyString`的使用者只使用到了它的公共方法和规格说明（没有使用私有的存储表示），我们可以“私底下”完成这种优化而不用担心影响使用者的代码。这就是表示独立的力量。
+将实现完全英寸起来是一种“妥协”，因为有时候使用者会希望有对具体实现的选择权利。这也是为什么Java库中的`ArrayList`和`LinkedList`“暴露”给了用户，因为这两个实现在 `get()` 和 `insert()`这样的操作中会有性能上的差别。
 
 #### 阅读小练习
 
-**Representation 1**
+**Code review**
 
-思考下面这个抽象类型：
+现在让我们来审查以下 `FastMyString`实现，下面是对这个实现的一些批评，你认为哪一些是对的？
 
-```java
-/**
- * Represents a family that lives in a household together.
- * A family always has at least one person in it.
- * Families are mutable.
- */
-class Family {
-    // the people in the family, sorted from oldest to youngest, with no duplicates.
-    public List<Person> people;
+应该把抽象函数注释出来 --> True
 
-    /**
-     * @return a list containing all the members of the family, with no duplicates.
-     */
-    public List<Person> getMembers() {
-        return people;
-    }
-}
-```
+应该把表示不变量注释出来 --> True
 
-下面是一个使用者的代码：
+表示域应该使用关键词 `final` 以便它们不能被重新改变索引 --> True
 
-```java
-void client1(Family f) {
-    // get youngest person in the family
-    Person baby = f.people.get(f.people.size()-1);
-    ...
-}
-```
+The private constructor should be public so clients can use it to construct their own arbitrary strings --> False
 
-假设所有的代码都能顺利运行（ `Family` 和 `client1`）并通过测试。
+The `charAt` specification should not expose that the rep contains individual characters --> False
 
-现在 `Family`的数据表示从 `List` 变为了 `Set` ：
-
-```java
-/**
- * Represents a family that lives in a household together.
- * A family always has at least one person in it.
- * Families are mutable.
- */
-class Family {
-    // the people in the family
-    public Set<Person> people;
-
-    /**
-     * @return a list containing all the members of the family, with no duplicates.
-     */
-    public List<Person> getMembers() {
-        return new ArrayList<>(people);
-    }
-}
-```
-
-以下哪一个选项是在 `Family` 更改后对 `client1` 的影响？
-
-- [x] `client1` 依赖于 `Family`的数据表示, 并且这种依赖会导致静态错误。
-
-
-**Representation 2**
-
-原始版本:
-
-```java
-/**
- * Represents a family that lives in a
- * household together. A family always
- * has at least one person in it.
- * Families are mutable. */
-class Family {
-    // the people in the family,
-    // sorted from oldest to youngest,
-    // with no duplicates.
-    public List<Person> people;
-
-    /** @return a list containing all
-     *  the members of the family,
-     *  with no duplicates. */
-    public List<Person> getMembers() {
-        return people;
-    }
-}
-```
-
-新版本：
-
-```java
-/**
- * Represents a family that lives in a
- * household together. A family always
- * has at least one person in it.
- * Families are mutable. */
-class Family {
-    // the people in the family
-    public Set<Person> people;
-
-
-    /**
-     * @return a list containing all
-     * the members of the family,
-     * with no duplicates. */
-    public List<Person> getMembers() {
-        return new ArrayList<>(people);
-    }
-}
-```
-
-使用者 `client2`的代码：
-
-```java
-void client2(Family f) {
-    // get size of the family
-    int familySize = f.people.size();
-    ...
-}
-```
-
-以下哪一个选项是新版本对 `client2` 的影响？
-
-- [x] `client2` 依赖于 `Family`的表示，这种依赖不会被捕捉错误但是会（幸运地）得到正确答案。
-
-
-
-**Representation 3**
-
-原始版本：
-
-```java
-/**
- * Represents a family that lives in a
- * household together. A family always
- * has at least one person in it.
- * Families are mutable. */
-class Family {
-    // the people in the family,
-    // sorted from oldest to youngest,
-    // with no duplicates.
-    public List<Person> people;
-
-    /** @return a list containing all
-     *  the members of the family,
-     *  with no duplicates. */
-    public List<Person> getMembers() {
-        return people;
-    }
-}
-```
-
-新版本：
-
-```java
-/**
- * Represents a family that lives in a
- * household together. A family always
- * has at least one person in it.
- * Families are mutable. */
-class Family {
-    // the people in the family
-    public Set<Person> people;
-
-
-    /**
-     * @return a list containing all
-     * the members of the family,
-     * with no duplicates. */
-    public List<Person> getMembers() {
-        return new ArrayList<>(people);
-    }
-}
-```
-
-使用者 `client3`的代码：
-
-```java
-void client3(Family f) {
-    // get any person in the family
-    Person anybody = f.getMembers().get(0);
-    ...
-}
-```
-
-以下哪一个选项是新版本对 `client3` 的影响？
-
-- [x] `client3` 独立于 `Family`的数据表示, 所以它依然能正确的工作
-
-
-
-
-**Representation 4**
-
-对于上面的`Family`数据类型，对每行/段判断他是规格说明（specification）还是数据表示（representation）还是具体实现（implementation）？
-
-```java
-/**
- * Represents a family that lives in a household together.
- * A family always has at least one person in it.
- * Families are mutable.
- */
-```
-
---> 规格说明
-
-```java
-public class Family {
-```
-
---> 规格说明
-
-```java
-    // the people in the family, sorted from oldest to youngest, with no duplicates.
-```
-
---> 数据表示
-
-```java
-    private List<Person> people;
-```
-
---> 数据表示
-
-```java
-  /**
-     * @return a list containing all the members of the family, with no duplicates.
-     */
-```
-
---> 规格说明
-
-```java
- public List<Person> getMembers() {
-```
-
---> 规格说明
-
-```java
-return people;
-```
-
---> 具体实现
+`charAt` 应该对于大于字符串长度的 `i` 有更好的处理 --> True
 
 <br />
+
+## 例子: 泛型 `Set<E>`
+
+Java中的聚合类型为“将接口和实现分离”提供了很好的例子。
+
+现在我们来思考一下java聚合类型中的`Set` 。`Set`是一个用来表示有着有限元素`E`的集合。这里是`Set`的一个简化的接口：
+
+```java
+/** A mutable set.
+ *  @param <E> type of elements in the set */
+public interface Set<E> {
+```
+
+`Set` 是一个泛型类型（generic type）：这种类型的规格说明中用一个占位符（以后会被作为参数输入）表示具体类型，而不是分开为不同类型例如 `Set<String>`, `Set<Integer>`, 进行说明。我们只需要设计实现一个 `Set<E>`.
+
+现在我们分别实现/声明这个ADT的各个操作，从创建者开始：
+
+```java
+    // example creator operation
+    /** Make an empty set.
+     *  @param <E> type of elements in the set
+     *  @return a new set instance, initially empty */
+    public static <E> Set<E> make() { ... } 
+```
+
+这里的`make`是作为一个静态工厂方法实现的。使用者会像这样调用它：`Set<String> strings = Set.make();` ，而编译器也会知道新的`Set`会是一个包含`String`对象元素的集合。（注意我们将`<E>`写在函数标识前面，因为`make`是一个静态方法，而`<E>`是它的泛型类型）。
+
+```java
+    // example observer operations
+
+    /** Get size of the set.
+     *  @return the number of elements in this set */
+    public int size();
+
+    /** Test for membership.
+     *  @param e an element
+     *  @return true iff this set contains e */
+    public boolean contains(E e);
+```
+
+接下来我们声明两个观察者。注意到规格说明中的提示，这里不应该提到具体某一个实现的细节或者它们的标识，而规格说明也应该适用于所有`Set`ADT的实现。
+
+```java
+    // example mutator operations
+
+    /** Modifies this set by adding e to the set.
+     *  @param e element to add */
+    public void add(E e);
+
+    /** Modifies this set by removing e, if found.
+     *  If e is not found in the set, has no effect.
+     *  @param e element to remove */
+    public void remove(E e);
+```
+
+对于改造者的要求也和观察者一样，我们依然要在接口抽象的层次书写规格说明。
+
+> 阅读参考：
+>
+> - [Lesson: Interfaces](http://docs.oracle.com/javase/tutorial/collections/interfaces/)
+> - [The Set Interface](http://docs.oracle.com/javase/tutorial/collections/interfaces/set.html)
+> - [Set Implementations](http://docs.oracle.com/javase/tutorial/collections/implementations/set.html)
+> - [The List Interface](http://docs.oracle.com/javase/tutorial/collections/interfaces/list.html)
+> - [List Implementations](http://docs.oracle.com/javase/tutorial/collections/implementations/list.html)
+
+#### 阅读小练习
+
+**Collection interfaces & implementations**
+
+假设下面的代码都是逐次执行的，并且不能被编译的代码都会被注释掉。
+
+这里的代码使用到了 [`Collections`](http://docs.oracle.com/javase/8/docs/api/?java/util/Collections.html)中的两个方法，你可能需要阅读一些参考。请为下面的问题回答出最合理的答案。
+
+```java
+Set<String> set = new HashSet<String>();
+```
+
+`set` 现在指向： --> 一个HashSet对象
+
+```java
+set = Collections.unmodifiableSet(set);
+```
+
+`set` 现在指向： --> 一个实现了`Set`接口的对象
+
+```java
+set = Collections.singleton("glorp");
+```
+
+`set` 现在指向： --> 一个实现了`Set`接口的对象
+
+```java
+set = new Set<String>();
+```
+
+`set` 现在指向： --> 这一行不能被编译
+
+```java
+List<String> list = set;
+```
+
+`set` 现在指向： --> 这一行不能被编译
+
+<br />
+
+## 泛型接口的实现
+
+假设现在我们要实现上面的 `Set<E>` 接口。我们既可以使用一个非泛型的实现（用一个特定的类型替代`E`），也可以使用一个泛型实现（保留类型占位符）。
+
+首先我们来看看**泛型接口的非泛型实现：**
+
+在 [*抽象函数 & 表示不变量*](http://www.cnblogs.com/liqiuhao/p/8688759.html) 我们实现了 `CharSet`类型,它被用来表示字符的集合。其中 `CharSet1`/`2`/`3` 这三种实现类都是 [`Set`接口](https://github.com/6031-sp18/ex11-adt-examples/blob/master/src/charset/Set.java) 的子类型，它们的声明如下：
+
+```java
+public class CharSet implements Set<Character>
+```
+
+当在Set声明中提到 `E`时，`Charset`的实现将类型占位符`E`替换为了`Character` ：
+
+```java
+public interface Set<E> {
+
+    // ...
+
+    /**
+     * Test for membership.
+     * @param e an element
+     * @return true iff this set contains e
+     */
+    public boolean contains(E e);
+
+    /**
+     * Modifies this set by adding e to the set.
+     * @param e element to add
+     */
+    public void add(E e);
+
+    // ...
+}
+```
+
+```java
+public class CharSet1 implements Set<Character> {
+
+    private String s = "";
+
+
+    // ...
+
+
+    @Override
+    public boolean contains(Character e) {
+        checkRep();
+        return s.indexOf(e) != -1;
+    }
+
+    @Override
+    public void add(Character e) {
+        if (!contains(e)) s += e;
+        checkRep();
+    }
+    // ...
+}
+```
+
+ `CharSet1`/`2`/`3` 的实现方法不适用于任意类型的元素，例如，由于它使用的是`String`成员， `Set<Integer>` 这种集合就无法直接表示。
+
+**接着我们再来看看泛型接口的泛型实现：** 
+
+我们也可以在实现 `Set<E>` 接口的时候不对`E`选择一个特定的类型。在这种情况下，我们会让使用者决定`E`到底是什么。例如，Java的 [`HashSet`](http://docs.oracle.com/javase/8/docs/api/?java/util/HashSet.html) 就是这种实现，它的声明像这样：
+
+```java
+public interface Set<E> {
+
+    // ...
+```
+
+```java
+public class HashSet<E> implements Set<E> {
+
+    // ...
+```
+
+一个泛型实现只能依靠接口规格说明中对类型占位符的要求，我们会在以后的阅读中看到 `HashSet` 是如何依靠每一个类型都要求实现的操作来实现它自己的，因为它没办法依赖于特定类型的操作。
+
+<br />
+
+## 为什么要使用接口？
+
+在Java代码中，接口被用的很广泛（但也不是所有类都是接口的实现），这里列出来了几个使用接口的好处：
+
+- **接口对于编译器和读者来说都是重要的文档：**接口不仅会帮助编译器发现ADT实现过程中的错误，它也会帮助读者更容易/快速的理解ADT的操作——因为接口将ADT抽象到了更高的层次，用户不需要关心具体实现的各种方案。
+- **允许进行性能上的权衡：**接口使得ADT可以有不同的实现方案，而这些实现方案可能在不同环境下的性能或其他资源特性有很大差别。使用者可以根据自己的环境/需求选择合适的实现方案。但是，在我们选择特定的方案后，我们依旧要保持代码的表示独立性，即当ADT发生（内部）改变或更换实现方案后代码依然能正常运行。
+- **通过未决定的规格说明给实现者以定义方法的自由：**例如，当把一个有限集合转化为一个列表的时候，有一些实现可能是使用较慢的方法，但是它们确保这些元素在列表中是排好序的；而其他的实现可能是不管这些元素转换后在列表中的排序，但是它们的速度更快。
+- **一个类具有多种“视角”：**在Java中，一个类可以同时实现多个接口，例如，一个能够显示列表的窗口部件就可能是一个同时实现了窗口和列表这两个接口的类。这反映的是多种ADT特性同时存在的特殊情况。
+- **允许不同信任度的实现：**另一个多次实现一个接口的原因在于，你可以写一个简单但是非常可靠的实现，也可以写一个很“炫”但是bug存在的几率（稳定性）高一些的实现。而使用者可以根据实际情况选择相应的方案。
+
+#### 阅读小练习
+
+假设你有一个有理数的类型，它现在是以类来表示的：
+
+```java
+public class Rational {
+    ...
+}
+```
+
+现在你决定将 `Rational` 换成Java接口，同时定义了一个实现类`IntFraction`：
+
+```java
+public interface Rational {
+    ...
+}
+
+public class IntFraction implements Rational {
+    ...
+}
+```
+
+对于下面之前 `Rational` 类中的代码，请你判定它们对应的身份，以及应该出现在新的接口或者新的实现类中？
+
+**Interface + implementation 1**
+
+```java
+private int numerator;
+private int denominator;
+```
+
+这段代码是（选中所有正确答案）：
+
+
+- [ ] 抽象函数
+- [ ] 创建者
+- [ ] 改造者
+- [ ] 观察者
+- [ ] 生产者
+- [x] （成员）表示
+- [ ] 表示不变量
+- [ ] 规格说明
+
+它应该位于：
+
+- [ ] 接口
+
+- [x] 实现类
+
+- [ ] 都有
+
+**Interface + implementation 2**
+
+```java
+//   denominator > 0
+//   numerator/denominator is in reduced form
+```
+
+这段代码是（选中所有正确答案）：
+
+- [ ] 抽象函数
+- [ ] 创建者
+- [ ] 改造者
+- [ ] 观察者
+- [ ] 生产者
+- [ ] （成员）表示
+- [x] 表示不变量
+- [ ] 规格说明
+
+它应该位于：
+
+- [ ] 接口
+- [x] 实现类
+- [ ] 都有
+
+**Interface + implementation 3**
+
+```java
+//   AF(numerator, denominator) = numerator / denominator
+```
+
+这段代码是（选中所有正确答案）：
+
+- [x] 抽象函数
+- [ ] 创建者
+- [ ] 改造者
+- [ ] 观察者
+- [ ] 生产者
+- [ ] （成员）表示
+- [ ] 表示不变量
+- [ ] 规格说明
+
+它应该位于：
+
+- [ ] 接口
+- [x] 实现类
+- [ ] 都有
+
+**Interface + implementation 4**
+
+```java
+    /**
+     * @param that another Rational
+     * @return a Rational equal to (this / that)
+     */
+```
+
+这段代码是（选中所有正确答案）：
+
+- [ ] 抽象函数
+- [ ] 创建者
+- [ ] 改造者
+- [ ] 观察者
+- [x] 生产者
+- [ ] （成员）表示
+- [ ] 表示不变量
+- [ ] 规格说明
+
+它应该位于：
+
+- [x] 接口
+- [ ] 实现类
+- [ ] 都有
+
+**Interface + implementation 5**
+
+```java
+    public boolean isZero()
+```
+
+这段代码是（选中所有正确答案）：
+
+- [ ] 抽象函数
+- [ ] 创建者
+- [ ] 改造者
+- [x] 观察者
+- [ ] 生产者
+- [ ] （成员）表示
+- [ ] 表示不变量
+- [ ] 规格说明
+
+它应该位于：
+
+- [ ] 接口
+- [ ] 实现类
+- [x] 都有
+
+**Interface + implementation 6**
+
+```java
+    return numer == 0;
+```
+
+这段代码是（选中所有正确答案）：
+
+- [ ] 抽象函数
+- [ ] 创建者
+- [ ] 改造者
+- [x] 观察者
+- [ ] 生产者
+- [ ] （成员）表示
+- [ ] 表示不变量
+- [ ] 规格说明
+
+它应该位于：
+
+- [ ] 接口
+- [x] 实现类
+- [ ] 都有
+
+<br />
+
+## 枚举
+
+有时候一个ADT的值域是一个很小的有限集，例如：
+
+- 一年中的月份: January, February, …
+- 一周中的天数: Monday, Tuesday, …
+- 方向: north, south, east, west
+- 画线时的[line caps](https://www.w3.org/TR/svg-strokes/#LineCaps) : butt, round, square
+
+这样的类型往往会被用来组成更复杂的类型（例如`DateTime`或者`Latitude`），或者作为一个改某个方法的行为的参数使用（例如`drawline`）。
+
+当值域很小且有限时，将所有的值定义为被命名的常量是有意义的，这被称为**枚举**(**enumeration**)。JAVA用`enum`使得枚举变得方便：
+
+```java
+public enum Month { JANUARY, FEBRUARY, MARCH, ..., DECEMBER };
+```
+
+这个`enum`定义类一种新的类型名，`Month`，这和使用`class`以及`interface`定义新类型名时是一样的。它也定义了一个被命名的值的集合，由于这些值实际上是`public static final`,所以我们将这个集合中的每个值的每个字母都大写。所以你可以这么写：
+
+```java
+Month thisMonth = MARCH;
+```
+
+这种思想被称为枚举，因为你显式地列出了一个集合中的所有元素，并且JAVA为每个元素都分配了数字作为代表它们的值。
+
+在枚举类型最简单的使用场景中，你需要的唯一操作是比较两个值是否相等：
+
+```java
+if (day.equals(SATURDAY) || day.equals(SUNDAY)) {
+    System.out.println("It's the weekend");
+}
+```
+
+你可能也会看到这样的代码，它使用`==`而不是`equals()`:
+
+```java
+if (day == SATURDAY || day == SUNDAY) {
+    System.out.println("It's the weekend");
+}
+```
+
+如果使用`String`类型来表示天数，那么这个代码是不安全的，因为`==`检测两边的表达式是否引用的是同一个对象，对于任意的两个字符串`“Saturday”`来说，这是不一定的。这也是为什么我们总是在比较两个对象时使用`equals()`的原因。但是使用枚举类型的好处之一就是：实际上只有*一个*对象来表示枚举类型的每个取值，且用户不可能创建更多的对象（没有构造者方法！）所以对于枚举类型来说，`==`和`equals()`的效果是一样的。
+
+在这个意义上，使用枚举就像使用原式的`int`常量一样。JAVA甚至支持在`switch`语句中使用枚举类型（`switch`在其他情况下只允许使用原式的整型，而不能是对象）：
+
+```java
+switch (direction) {
+    case NORTH: return "polar bears";
+    case SOUTH: return "penguins";
+    case EAST:  return "elephants";
+    case WEST:  return "llamas";
+}
+```
+
+但是和`int`值不同的是，JAVA对枚举类型有更多的静态检查:
+
+```java
+Month firstMonth = MONDAY; // static error: MONDAY has type DayOfWeek, not type Month 
+```
+
+一个`enum`声明中可以包含所有能在`class`声明中常用字段和方法。所以你可以为这个ADT定义额外的操作，并且还定义你自己的表示（成员变量）。这里是一个声明了一个成员变量、一个观察者和一个生产者的枚举类型的例子：
+
+```java
+public enum Month {
+    // the values of the enumeration, written as calls to the private constructor below
+    JANUARY(31),
+    FEBRUARY(28),
+    MARCH(31),
+    APRIL(30),
+    MAY(31),
+    JUNE(30),
+    JULY(31),
+    AUGUST(31),
+    SEPTEMBER(30),
+    OCTOBER(31),
+    NOVEMBER(30),
+    DECEMBER(31);
+
+    // rep
+    private final int daysInMonth;
+
+    // enums also have an automatic, invisible rep field:
+    //   private final int ordinal;
+    // which takes on values 0, 1, ... for each value in the enumeration.
+
+    // rep invariant:
+    //   daysInMonth is the number of days in this month in a non-leap year
+    // abstraction function:
+    //   AF(ordinal,daysInMonth) = the (ordinal+1)th month of the Gregorian calendar
+    // safety from rep exposure:
+    //   all fields are private, final, and have immutable types
+
+    // Make a Month value. Not visible to clients, only used to initialize the
+    // constants above.
+    private Month(int daysInMonth) {
+        this.daysInMonth = daysInMonth;
+    }
+
+    /**
+     * @param isLeapYear true iff the year under consideration is a leap year
+     * @return number of days in this month in a normal year (if !isLeapYear) 
+     *                                           or leap year (if isLeapYear)
+     */
+    public int getDaysInMonth(boolean isLeapYear) {
+        if (this == FEBRUARY && isLeapYear) {
+            return daysInMonth+1;
+        } else {
+            return daysInMonth;
+        }
+    }
+
+    /**
+     * @return first month of the semester after this month
+     */
+    public Month nextSemester() {
+        switch (this) {
+            case JANUARY:
+                return FEBRUARY;
+            case FEBRUARY:   // cases with no break or return
+            case MARCH:      // fall through to the next case
+            case APRIL:
+            case MAY:
+                return JUNE;
+            case JUNE:
+            case JULY:
+            case AUGUST:
+                return SEPTEMBER;
+            case SEPTEMBER:
+            case OCTOBER:
+            case NOVEMBER:
+            case DECEMBER:
+                return JANUARY;
+            default:
+                throw new RuntimeException("can't get here");
+        }
+    }
+}
+```
+
+所有的`enum`类型也都有一些内置的(automatically-provided)操作，这些操作在[`Enum`](https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html)中定义：
+
+- `ordinal()` 是某个值在枚举类型中的索引值，因此 `JANUARY.ordinal()` 返回 0.
+- `compareTo()` 基于两个值的索引值来比较两个值.
+- `name()` 返回字符串形式表示的当前枚举类型值，例如， `JANUARY.name()` 返回`"JANUARY"`.
+- `toString()` 和 `name()`是一样的.
+
+> 阅读JAVA教程中的[**Enum Types**](http://docs.oracle.com/javase/tutorial/java/javaOO/enum.html) （1页）和 [**Nested Classes**](http://docs.oracle.com/javase/tutorial/java/javaOO/nested.html)（1页）
+
+#### 阅读测试
+
+**Semester**
+
+考虑这三种可选的方式来命名你将要注册的Semester：
+
+- 用一个字符串字面量:
+
+```java
+startRegistrationFor("Fall", 2023);
+```
+
+- 用一个命名的`String`类型常量:
+
+```java
+public static final String FALL = "Fall";
+...
+startRegistrationFor(FALL, 2023);
+```
+
+- 用一个枚举类型的值：
+
+```java
+public enum Semester { IAP, SPRING, SUMMER, FALL };
+...
+startRegistrationFor(FALL, 2023);
+```
+
+下列关于每个方案的优缺点叙述正确的是：
+
+- [x] 使用字符串字面量的方案不会快速报错，因为用户可能拼写错误的学期，而不会得到这样的静态错误信息:`startRegistrationFor("FAll", 2023)`
+- [ ] The named string constant approach isn’t safe from bugs, because the name can be reassigned: `FALL = "Spring"`
+- [x] 命名的字符串常量方案不会快速报错，因为用户可能直接用不正确的字符串字面量来调用，但是却不会得到静态错误：`startRegistrationFor("Autumn", 2023)`.
+- [ ] The enumeration approach isn’t safe from bugs, because the client can define new semesters without getting a static error: `startRegistrationFor(new Semester("Autumn"), 2023)`.
+- [ ] The enumeration approach isn’t safe from bugs, because the client can substitute a different enumeration type without getting a static error: `startRegistrationFor(JANUARY, 2023)`.
+
+<br />
+
 
 ## 抽象数据类型在Java中的实现
 
-让我们总结一下我们在这篇文章中讨论过的主要思想以及使用JAVA语言特性实现它们的具体方法，这些思想对于使用任何语言编程一般都是适用的。重点在于有很多种方式来实现，很重要的一点是：既要对大概念（比如构造操作：creator operation）有较好的理解，也要理解它们不同的实现方式。
+现在我们完成了对[“抽象数据类型”](http://www.cnblogs.com/liqiuhao/p/8667447.html)中“Java中ADT实现”的理解：
 
-| ADT concept          | Ways to do it in Java   | Examples                                                     |
-| -------------------- | ----------------------- | ------------------------------------------------------------ |
-| *Abstract data type* | Class                   | [`String`](http://docs.oracle.com/javase/8/docs/api/?java/lang/String.html) |
-|                      | Interface + class(es)   | [`List`](http://docs.oracle.com/javase/8/docs/api/?java/util/List.html) and [`ArrayList`](http://docs.oracle.com/javase/8/docs/api/?java/util/ArrayList.html) |
-|                      | Enum                    | [`DayOfWeek`](http://docs.oracle.com/javase/8/docs/api/?java/time/DayOfWeek.html) |
-| *Creator operation*  | Constructor             | [`ArrayList()`](http://docs.oracle.com/javase/8/docs/api/java/util/ArrayList.html#ArrayList--) |
-|                      | Static (factory) method | [`Collections.singletonList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#singletonList-T-), [`Arrays.asList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-) |
-|                      | Constant                | [`BigInteger.ZERO`](http://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html#ZERO) |
-| *Observer operation* | Instance method         | [`List.get()`](http://docs.oracle.com/javase/8/docs/api/java/util/List.html#get-int-) |
-|                      | Instance method         | [`Collections.max()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#max-java.util.Collection-) |
-| *Producer operation* | Instance method         | [`String.trim()`](http://docs.oracle.com/javase/8/docs/api/java/lang/String.html#trim--) |
-|                      | Static method           | [`Collections.unmodifiableList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#unmodifiableList-java.util.List-) |
-| *Mutator operation*  | Instance method         | [`List.add()`](http://docs.oracle.com/javase/8/docs/api/java/util/List.html#add-E-) |
-|                      | Static method           | [`Collections.copy()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#copy-java.util.List-java.util.List-) |
-| *Representation*     | `private` fields        |                                                              |
-
-这个表中有三项我们还没有在之前的阅读中讲过：
-
-1. 使用接口来定义一个抽象数据类型。我们已经看到 [`List`](http://docs.oracle.com/javase/8/docs/api/?java/util/List.html) 和 [`ArrayList`](http://docs.oracle.com/javase/8/docs/api/?java/util/ArrayList.html) 这些例子，并且我们将会在以后的阅读中讨论接口。
-2. 使用枚举类型(`enum`)定义一个抽象数据类型。枚举对于有固定取值集合的ADTs(例如一周中有周一、周二等等)来说,是很理想的类型。我们将会在以后的阅读中讨论枚举。
-3. 用不变的对象作为构造者操作。这种模式在不可变类型中很常见，在不可变类型中，最简单或者空（emptiest译者：喵喵喵？）的值仅仅是一个属性为public的不变量，基于这个不变量，生产者被用来从中构造更复杂的值。
+| ADT 角度       | Java实现         | 例子                                                         |
+| -------------- | ---------------- | ------------------------------------------------------------ |
+| *抽象数据类型* | 类               | [`String`](http://docs.oracle.com/javase/8/docs/api/?java/lang/String.html) |
+|                | 接口 + 类        | [`List`](http://docs.oracle.com/javase/8/docs/api/?java/util/List.html) and [`ArrayList`](http://docs.oracle.com/javase/8/docs/api/?java/util/ArrayList.html) |
+|                | 枚举（Enum）     | [`DayOfWeek`](http://docs.oracle.com/javase/8/docs/api/?java/time/DayOfWeek.html) |
+| *创建者操作*   | 构造方法         | [`ArrayList()`](http://docs.oracle.com/javase/8/docs/api/java/util/ArrayList.html#ArrayList--) |
+|                | 静态（工厂）方法 | [`Collections.singletonList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#singletonList-T-), [`Arrays.asList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-) |
+|                | 常量             | [`BigInteger.ZERO`](http://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html#ZERO) |
+| *观察者操作*   | 实例方法         | [`List.get()`](http://docs.oracle.com/javase/8/docs/api/java/util/List.html#get-int-) |
+|                | 静态方法         | [`Collections.max()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#max-java.util.Collection-) |
+| *生产者操作*   | 实例方法         | [`String.trim()`](http://docs.oracle.com/javase/8/docs/api/java/lang/String.html#trim--) |
+|                | 静态方法         | [`Collections.unmodifiableList()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#unmodifiableList-java.util.List-) |
+| *改造者操作*   | 实例方法         | [`List.add()`](http://docs.oracle.com/javase/8/docs/api/java/util/List.html#add-E-) |
+|                | 静态方法         | [`Collections.copy()`](http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#copy-java.util.List-java.util.List-) |
+| *（成员）表示* | `private`/私有域 |                                                              |
 
 <br />
-
-## 测试抽象数据类型
-
-当我们测试一个抽象数据类型的时候，我们分别测试它的各个操作。而这些测试不可避免的要互相交互：我们只能通过观察者来判断其他的操作的测试是否成功，而测试观察者的唯一方法是创建对象然后使用观察者。
-
-下面是我们测试 `MyString` 类型时对输入空间的一种可能划分方案：
-
-```java
-// testing strategy for each operation of MyString:
-//
-// valueOf():
-//    true, false
-// length(): 
-//    string len = 0, 1, n
-//    string = produced by valueOf(), produced by substring()
-// charAt(): 
-//    string len = 1, n
-//    i = 0, middle, len-1
-//    string = produced by valueOf(), produced by substring()
-// substring():
-//    string len = 0, 1, n
-//    start = 0, middle, len
-//    end = 0, middle, len
-//    end-start = 0, n
-//    string = produced by valueOf(), produced by substring()
-```
-
-现在我们试着用测试用例覆盖每一个分区。注意到 `assertEquals` 并不能直接应用于 `MyString`对象，因为我们没有在 `MyString`上定义判断相等的操作，所以我们只能使用之前定义的 `valueOf`, `length`, `charAt`, 以及 `substring`，例如：
-
-```java
-@Test public void testValueOfTrue() {
-    MyString s = MyString.valueOf(true);
-    assertEquals(4, s.length());
-    assertEquals('t', s.charAt(0));
-    assertEquals('r', s.charAt(1));
-    assertEquals('u', s.charAt(2));
-    assertEquals('e', s.charAt(3));
-}
-
-@Test public void testValueOfFalse() {
-    MyString s = MyString.valueOf(false);
-    assertEquals(5, s.length());
-    assertEquals('f', s.charAt(0));
-    assertEquals('a', s.charAt(1));
-    assertEquals('l', s.charAt(2));
-    assertEquals('s', s.charAt(3));
-    assertEquals('e', s.charAt(4));
-}
-
-@Test public void testEndSubstring() {
-    MyString s = MyString.valueOf(true).substring(2, 4);
-    assertEquals(2, s.length());
-    assertEquals('u', s.charAt(0));
-    assertEquals('e', s.charAt(1));
-}
-
-@Test public void testMiddleSubstring() {
-    MyString s = MyString.valueOf(false).substring(1, 2);
-    assertEquals(1, s.length());
-    assertEquals('a', s.charAt(0));
-}
-
-@Test public void testSubstringIsWholeString() {
-    MyString s = MyString.valueOf(false).substring(0, 5);
-    assertEquals(5, s.length());
-    assertEquals('f', s.charAt(0));
-    assertEquals('a', s.charAt(1));
-    assertEquals('l', s.charAt(2));
-    assertEquals('s', s.charAt(3));
-    assertEquals('e', s.charAt(4));
-}
-
-@Test public void testSubstringOfEmptySubstring() {
-    MyString s = MyString.valueOf(false).substring(1, 1).substring(0, 0);
-    assertEquals(0, s.length());
-}
-```
-
-#### 阅读小练习
-
-**Partition covering**
-
-哪一个测试覆盖了分区“`charAt()` 以及字符串长度=1”？
-
-- [x] `testMiddleSubstring`
-
-
-哪一个测试覆盖了分区“子字符串的子字符串”？
-
-- [x] `testSubstringOfEmptySubstring`
-
-哪一个测试覆盖了分区“`valueOf(true)`”？
-
-- [x] `testValueOfTrue`
-
-- [x] `testEndSubstring`
-
-
-**Unit testing an ADT**
-
-`testValueOfTrue`测试的是哪一个“单元”？
-
-- [x] `valueOf` 操作
-- [x] `length` 操作
-- [x] `charAt` 操作
-
-
-<br />
-
 
 ## 总结
 
-- 抽象数据类型(ADT)是通过它们对应的操作区分的。
-- 操作可以分类为创建者、生产者、观察者、改造者。
-- ADT的标识由它的操作集合和规格说明组成。
-- 一个好的ADT应该是简单，逻辑明确并且表示独立的。
-- 对于ADT的测试应该对每一个操作进行测试，并同时利用到创建者、生产者、观察者、改造者。
+抽象数据类型是由它支持的操作集合所定义的，而Java中的结构能够帮助我们形式化这种思想。
 
-T将本次阅读的内容和我们的三个目标联系起来：
+这能够使我们的代码：
 
-- **远离bug.** 一个好的ADT会在使用者和实现者之间建立“契约”，使用者知道应该如何使用，而实现者有足够的自由决定具体实现。
-- **易于理解.** 一个好的ADT会将其内部的代码和信息隐藏起来，而使用者只需要理解它的规格说明和操作即可。
-- **可改动.** 表示独立使得实现者可以在不通知使用者的情况下对ADT内部进行改动。
+- **远离bug.** 一个ADT是由它的操作集合定义的，而接口就是做了这件事情。当使用者使用接口类型时，静态检查能够确保它们只使用了接口规定的方法。如果实现类写出了/暴露了其他方法——或者更糟糕，暴露了内部表示——，使用者也不会依赖于这些操作。当我们实现一个接口时，编译器会确保所有的方法标识都得到实现。
+- **易于理解.** 使用者和维护者都知道在哪里寻找ADT的规格说明。因为接口没有实例成员或者实例方法的函数体，所以它能更容易的将具体实现从规格说明中分离开。
+- **可改动.** 我们可以轻松地为已有的接口添加新的实现类。如果我们认为静态工厂方法比类构造方法更合适，使用者将只会看到这个接口。这意味着我们可以调整接口中工厂方法的实现类而不用改变使用者的代码。
+
+Java的枚举类型能够定义一种只有少部分不可变值的ADT。和以前使用特殊的整数或者字符串相比，枚举类型能够帮助我们的代码：
+
+- **远离bug.** 静态检查能够确保使用者没有使用到规定集合外的值，或者是不同枚举类型的值。
+- **易于理解.** 将常量命名为枚举类型名字而非幻数（或其他字面量）能够更清晰的做自我注释。
+- **可改动.** 无
