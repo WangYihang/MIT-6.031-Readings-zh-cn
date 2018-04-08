@@ -26,7 +26,7 @@ V1.0 Sun Apr  8 13:29:19 CST 2018
 
 <br />
 
-*译者注：本次阅读少部分说法基于Javase8及以后的版本，在javase8以后已经可以在接口中定义静态方法/静态常量/default方法。参考：[Java 8 Interface Changes – static method, default method](https://www.journaldev.com/2752/java-8-interface-changes-static-method-default-method)*
+*译者注：本次阅读少部分说法基于Javase8及以后的版本。参考：[Java 8 Interface Changes – static method, default method](https://www.journaldev.com/2752/java-8-interface-changes-static-method-default-method)*
 
 <br />
 
