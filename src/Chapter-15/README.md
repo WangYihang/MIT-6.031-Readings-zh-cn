@@ -197,7 +197,7 @@ d1.equals(o2) → false
 
 如下图所示，可以看到，虽然`d2`和`o2`最终指向的是同一个对象/存储区域，但是我们的 `equals()`却得到的不同的结果。
 
-![img](file:///home/frank/Desktop/6.031/readings/15:%20Equality/img/Selection_282.png?lastModify=1523350784)
+![img](./img/Selection_282.png)
 
 这是怎么回事呢？**事实上， `Duration` 只是重载(overloaded)了 `equals()` 方法，因为它的方法标识和`Object`中的不一样**，也就是说，这是 `Duration`中有两个 `equals()` 方法：一个是从 `Object`隐式继承下来的`equals(Object)` ，还有一个就是我们写的 `equals(Duration)`。
 
