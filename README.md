@@ -26,6 +26,7 @@ By: 李秋豪
 - [x] [抽象数据类型](src/Chapter-10/README.md)
 - [x] [抽象函数与表示不变量](src/Chapter-11/README.md)
 - [x] [接口与枚举](src/Chapter-12/README.md)
+- [x] [调试](https://www.cnblogs.com/liqiuhao/p/8908365.html)
 - [x] [相等](src/Chapter-15/README.md)
 
 
