@@ -11,6 +11,8 @@ By: 李秋豪
 [江家伟](https://github.com/vccxx)  
 [王一航](https://github.com/wangyihang)  
 
+更新：请到[新地址](https://www.cnblogs.com/liqiuhao/category/1167752.html)访问阅读材料，很多错误和更新没有同步到GitHub上来。
+
 #### 目录
 - [x] [静态检查](src/Chapter-01/README.md)
 - [x] [Java 基础](src/Chapter-02/README.md)
